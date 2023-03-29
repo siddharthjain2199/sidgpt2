@@ -1,0 +1,13 @@
+const userTypes = {
+    SET_USER: "SET_USER",
+    SET_NAME: "SET_NAME",
+    SET_EMAIL:"SET_EMAIL",
+    SET_PASSWORD: "SET_PASSWORD",
+    LOGIN: "LOGIN",
+    LOGIN_ERROR: "LOGIN_ERROR",
+    REGISTER: "REGISTER",
+    REGISTER_ERROR: "REGISTER_ERROR",
+    LOGOUT: "LOGOUT"
+};
+
+export default userTypes;

@@ -20,12 +20,6 @@ const Login = () => {
 
     return (
         <div>
-            {state.error && <>
-                <div className='alert alert-danger alert-dismissible fade show'>
-                    {state.error}
-                </div>
-                <br></br>
-            </>}
             {currentUser ? (
                 <>
                     <Navigate to="/" />
@@ -35,6 +29,12 @@ const Login = () => {
                     <section className='container mx-auto p-5 fixed inset-0 mt-3'>
                         <div className="mockup-window bg-base-300 w-full h-full flex flex-col">
                             <div className="p-5 pb-8 flex-grow overflow-auto">
+                                {state.error && <>
+                                    <div className='alert alert-danger bg-danger text-light alert-dismissible fade show'>
+                                        {state.error}
+                                    </div>
+                                    <br></br>
+                                </>}
                                 <div className="container bg-transparent text-light">
                                     <h2 className='text-center mb-3'>Login</h2>
                                     <hr />

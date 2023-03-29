@@ -2,6 +2,7 @@ import { useContext, useRef, useState } from 'react';
 import { Configuration, OpenAIApi } from "openai";
 import { AuthContext } from '../../Context/userContext';
 import { Navigate } from 'react-router-dom';
+import TypeWriterEffect from 'react-typewriter-effect';
 
 const configuration = new Configuration({
   organization: "org-pApx96ATbGdkBSYJq4t0XWHd",
@@ -52,13 +53,14 @@ function Home() {
       }
     ]);
   }
+  const myAppRef = document.querySelector('.scrollable-div')
 
   return (
     <div>
 
       {currentUser ?
         (
-          <section className='container mx-auto p-5 fixed inset-0 mt-4'>
+          <section className='container mx-auto p-0 pt-5 fixed inset-0 mt-4'>
             <div className="mockup-window bg-base-300 w-full h-full flex flex-col">
               <div className="p-5 pb-8 flex-grow overflow-auto">
                 {
@@ -71,7 +73,15 @@ function Home() {
                           </div>
                         </div>
                         <div className="chat-bubble" ref={messagesEndRef}>
-                          {msg.content}
+                          {msg.role === 'assistant' ? <TypeWriterEffect
+                            startDelay={40}
+                            cursorColor="transparent"
+                            text={msg.content}
+                            typeSpeed={50}
+                            scrollArea={myAppRef}
+                          /> :
+                             msg.content 
+                          }
                         </div>
                       </div>
                     )

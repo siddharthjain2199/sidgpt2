@@ -17,55 +17,55 @@ function Signup() {
     const { currentUser } = useContext(AuthContext);
     return (
         <div>
-            {state.error && <>
-                <div className='alert alert-danger alert-dismissible fade show'>
-                    {state.error}
-                </div>
-                <br></br>
-            </>}
             {currentUser ? (
                 navigate('/')
             ) : (
                 <section className='container mx-auto p-5 fixed inset-0 mt-3'>
                     <div className="mockup-window bg-base-300 w-full h-full flex flex-col">
                         <div className="p-5 pb-8 flex-grow overflow-auto">
-                        <div className="container bg-transparent text-light">
-                            <h2 className='text-center mb-3'>Signup</h2>
-                            <hr />
-                            <form onSubmit={handleSignup}>
-                                <div className="form-group row ">
-                                    <label className="col-sm-2 col-form-label">
-                                        Name:
-                                    </label>
-                                    <div className='col-sm-5'>
-                                        <input type="text" className='form-control  bg-transparent text-light' value={registerInput.name} onChange={(e) => setRegisterInput({ ...registerInput, name: e.target.value })} />
+                            {state.error && <>
+                                <div className='alert alert-danger alert-dismissible fade show'>
+                                    {state.error}
+                                </div>
+                                <br></br>
+                            </>}
+                            <div className="container bg-transparent text-light">
+                                <h2 className='text-center mb-3'>Signup</h2>
+                                <hr />
+                                <form onSubmit={handleSignup}>
+                                    <div className="form-group row ">
+                                        <label className="col-sm-2 col-form-label">
+                                            Name:
+                                        </label>
+                                        <div className='col-sm-5'>
+                                            <input type="text" className='form-control  bg-transparent text-light' value={registerInput.name} onChange={(e) => setRegisterInput({ ...registerInput, name: e.target.value })} />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="form-group row mt-3">
-                                    <label className="col-sm-2 col-form-label">
-                                        Email:
-                                    </label>
-                                    <div className='col-sm-5'>
-                                        <input type="email" className='form-control bg-transparent text-light' value={registerInput.email} onChange={(e) => setRegisterInput({ ...registerInput, email: e.target.value })} />
+                                    <div className="form-group row mt-3">
+                                        <label className="col-sm-2 col-form-label">
+                                            Email:
+                                        </label>
+                                        <div className='col-sm-5'>
+                                            <input type="email" className='form-control bg-transparent text-light' value={registerInput.email} onChange={(e) => setRegisterInput({ ...registerInput, email: e.target.value })} />
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="form-group row mt-3">
-                                    <label className="col-sm-2 col-form-label">
-                                        Password:
-                                    </label>
-                                    <div className='col-sm-5'>
-                                        <input type="password" className='form-control bg-transparent text-light' value={registerInput.password} onChange={(e) => setRegisterInput({ ...registerInput, password: e.target.value })} />
+                                    <div className="form-group row mt-3">
+                                        <label className="col-sm-2 col-form-label">
+                                            Password:
+                                        </label>
+                                        <div className='col-sm-5'>
+                                            <input type="password" className='form-control bg-transparent text-light' value={registerInput.password} onChange={(e) => setRegisterInput({ ...registerInput, password: e.target.value })} />
+                                        </div>
                                     </div>
+                                    <div className="form-group mt-3">
+                                        <button className='btn btn-warning' type="submit">Signup</button>
+                                    </div>
+                                </form>
+                                <div>
+                                    Already have an account
+                                    <Link className='btn btn-link' to='/login'>Login</Link>
                                 </div>
-                                <div className="form-group mt-3">
-                                    <button className='btn btn-warning' type="submit">Signup</button>
-                                </div>
-                            </form>
-                            <div>
-                                Already have an account
-                                <Link className='btn btn-link' to='/login'>Login</Link>
-                            </div>
-                        </div >
+                            </div >
                         </div>
                     </div>
                 </section>

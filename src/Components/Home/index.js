@@ -60,9 +60,9 @@ function Home() {
 
       {currentUser ?
         (
-          <section className='container mx-auto p-0 pt-5 fixed inset-0 mt-4'>
+          <section className='container mx-auto p-0 pt-2 pb-2 fixed inset-0 mt-4'>
             <div className="mockup-window bg-base-300 w-full h-full flex flex-col">
-              <div className="p-5 pb-8 flex-grow overflow-auto">
+              <div className="p-0 pb-8 flex-grow overflow-auto">
                 {
                   messages.length && messages.map((msg, i) => {
                     return (

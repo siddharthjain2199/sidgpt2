@@ -72,7 +72,7 @@ function Home() {
                         </div>
                         <div className="chat-bubble" ref={messagesEndRef}>
                           {msg.role === 'assistant' ?
-                            <pre className='word-wrap'>
+                            <pre>
                               <TypeWriterEffect
                                 startDelay={40}
                                 cursorColor="transparent"

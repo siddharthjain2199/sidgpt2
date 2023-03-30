@@ -2,7 +2,6 @@ import { useContext, useRef, useState } from 'react';
 import { Configuration, OpenAIApi } from "openai";
 import { AuthContext } from '../../Context/userContext';
 import { Navigate } from 'react-router-dom';
-import TypeWriterEffect from 'react-typewriter-effect';
 
 const configuration = new Configuration({
   organization: "org-pApx96ATbGdkBSYJq4t0XWHd",
@@ -21,7 +20,6 @@ function Home() {
   ])
 
   const [isTyping, setIsTyping] = useState(false);
-  const myAppRef = document.querySelector('.scrollable-div')
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,14 +52,13 @@ function Home() {
       }
     ]);
   }
-
   return (
     <div>
       {currentUser ?
         (
           <section className='container mx-auto p-0 pt-2 pb-2 fixed inset-0 mt-4'>
             <div className="mockup-window bg-base-300 w-full h-full flex flex-col">
-              <div className="p-0 pb-8 flex-grow overflow-auto" style={{marginBottom:"50px"}}>
+              <div className="p-0 pb-4 flex-grow overflow-auto" style={{marginBottom:"20px"}}>
                 {messages.length && messages.map((msg, i) => {
                     return (
                       <div className={`chat ${msg.role === 'assistant' ? 'chat-start' : 'chat-end'}`} key={i}>
@@ -71,18 +68,7 @@ function Home() {
                         </div>
                       </div>
                       <div className="chat-bubble" ref={messagesEndRef}>
-                        {msg.role === 'assistant' ? 
-                        <pre>
-                        <TypeWriterEffect
-                          startDelay={40}
-                          cursorColor="transparent"
-                          text={msg.content}
-                          typeSpeed={50}
-                          scrollArea={myAppRef}
-                        />
-                        </pre> :
-                          <pre>{ msg.content }</pre>
-                        }
+                        <pre><small>{msg.content}</small></pre>
                       </div>
                     </div>
                   )

@@ -10,3 +10,7 @@ pre {
     white-space: -o-pre-wrap;
     word-wrap: break-word;
 }
+
+div::-webkit-scrollbar {
+    width: 8px;
+  }

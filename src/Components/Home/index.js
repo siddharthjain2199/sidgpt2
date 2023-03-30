@@ -81,7 +81,7 @@ function Home() {
                           scrollArea={myAppRef}
                         />
                         </pre> :
-                           msg.content 
+                          <pre>{ msg.content }</pre>
                         }
                       </div>
                     </div>

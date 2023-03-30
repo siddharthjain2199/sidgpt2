@@ -49,3 +49,19 @@ export const signOutWithEmailAndPassword = async (dispatch) => {
         });
 };
 
+
+export const handleForgotPassword = async (email,dispatch) => {
+    auth.sendPasswordResetEmail(email)
+      .then(() => {
+        // Password reset email sent successfully
+        // console.log("succesfully send email");
+        dispatch({ type: userTypes.FORGOT_ERROR, payload: { message: `Reset password sent to your Email ${email}` } });
+      })
+      .catch(error => {
+        // Handle errors here
+        let errorString = error.message;
+        errorString = errorString.replace("Firebase: ", "");
+        errorString = errorString.replace(/ \(auth\/.*?\)\./, "");
+        dispatch({ type: userTypes.FORGOT_ERROR, payload: { message: errorString } });
+      });
+  }

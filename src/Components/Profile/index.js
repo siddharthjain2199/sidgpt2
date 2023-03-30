@@ -128,10 +128,6 @@ export const Profile = () => {
                                                 </div>
                                                 <div className="mt-3">
                                                     <div className="col-md-12"><label className="labels">Password :&nbsp;</label>
-                                                        {/* <input type={showPassword ? 'text' : 'password'} className="form-control" placeholder="enter Password" value={currentUser.Password} readOnly />
-                                                <button onClick={handleTogglePassword}>
-                                                    {showPassword ? 'Hide Password' : 'Show Password'}
-                                                </button> */}
                                                         <span
                                                             contentEditable={true}
                                                             suppressContentEditableWarning={true}

@@ -4,9 +4,9 @@ import userTypes from "../types/userTypes";
 
 const initialState = {
   user: {
-    displayName:"",
-    email:"",
-    password:""
+    displayName: "",
+    email: "",
+    password: ""
   },
   isAuthenticated: false,
   error: null // new field to track authentication errors
@@ -29,6 +29,8 @@ const userReducer = (state, action) => {
     case userTypes.REGISTER:
       return { ...state, isAuthenticated: true, error: null };
     case userTypes.REGISTER_ERROR:
+      return { ...state, isAuthenticated: false, error: action.payload.message };
+    case userTypes.FORGOT_ERROR:
       return { ...state, isAuthenticated: false, error: action.payload.message };
     case userTypes.LOGOUT:
       return { ...state, isAuthenticated: false, error: null };

@@ -1,13 +1,7 @@
 import { useContext, useRef, useState } from 'react';
-import { Configuration, OpenAIApi } from "openai";
 import { AuthContext } from '../../Context/userContext';
 import { Navigate } from 'react-router-dom';
-
-const configuration = new Configuration({
-  organization: "org-pApx96ATbGdkBSYJq4t0XWHd",
-  apiKey: process.env.REACT_APP_OPENAI,
-});
-const openai = new OpenAIApi(configuration);
+import { openai } from '../../Config/openaiconfig';
 
 function Home() {
   const { currentUser } = useContext(AuthContext);

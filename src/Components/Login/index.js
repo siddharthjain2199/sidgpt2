@@ -55,12 +55,15 @@ const Login = () => {
                                                 <input type="password" className='form-control bg-transparent text-light' value={loginInput.password} onChange={handlePassword} />
                                             </div>
                                         </div>
-                                        <div className="form-group mt-3">
+                                        <div className="form-group mt-3 ml-5">
                                             <button className='btn btn-warning' type="submit">Login</button>
                                         </div>
                                     </form>
                                     <div>
-                                        Not have an account
+                                        <small className='ml-4'>Did not remember </small>
+                                        <Link className='btn btn-link' to='/resetpassword'>Forgot Password?</Link>
+
+                                        <small className='ml-4'>Not have an account?</small>
                                         <Link className='btn btn-link' to='/signup'>Signup</Link>
                                     </div>
                                 </div>

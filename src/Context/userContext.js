@@ -5,6 +5,7 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Set up Firebase authentication listener
@@ -13,16 +14,18 @@ export const AuthProvider = ({ children }) => {
         fs.collection('users').doc(user.uid).get().then((snapshot) => {
           setCurrentUser(snapshot.data());
         })
+        setLoading(false);
       }
       else {
         setCurrentUser(null);
+        setLoading(false)
       }
     });
     // Unsubscribe from listener when component unmounts
     return unsubscribe;
-  }, []);
+  }, );
   return (
-    <AuthContext.Provider value={{ currentUser }}>
+    <AuthContext.Provider value={{ currentUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

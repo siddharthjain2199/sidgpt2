@@ -61,7 +61,7 @@ function Home() {
                         <div className={`chat ${msg.role === 'assistant' ? 'chat-start' : 'chat-end'}`} key={i}>
                           <div className="chat-image avatar">
                             <div className="w-10 rounded-full">
-                              <img src={msg.role === 'assistant' ? '/images/apic.jpg' : '/images/bpic.png'} alt="" />
+                              <img src={msg.role === 'assistant' ? '/images/apic.jpg' : '/images/bpic.jpg'} alt="" />
                             </div>
                           </div>
                           <div className={`chat-bubble  ${msg.role === 'assistant' ? 'bg-primary p-2 text-white bg-opacity-25' : 'bg-info p-2 text-white bg-opacity-25'}`} ref={messagesEndRef}>

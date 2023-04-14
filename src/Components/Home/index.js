@@ -9,7 +9,7 @@ function Home() {
   const messagesEndRef = useRef(null);
   const [messages, setMessages] = useState([
     {
-      content: "Hi, I'm Wednesday Addams, how can I help you ?",
+      content: "Hi, I'm Siddharth, how can I help you ?",
       role: "assistant"
     }
   ])
@@ -61,7 +61,7 @@ function Home() {
                         <div className={`chat ${msg.role === 'assistant' ? 'chat-start' : 'chat-end'}`} key={i}>
                           <div className="chat-image avatar">
                             <div className="w-10 rounded-full">
-                              <img src={msg.role === 'assistant' ? '/images/apic.png' : '/images/bpic.jpg'} alt="" />
+                              <img src={msg.role === 'assistant' ? '/images/apic.jpg' : '/images/bpic.png'} alt="" />
                             </div>
                           </div>
                           <div className={`chat-bubble  ${msg.role === 'assistant' ? 'bg-primary p-2 text-white bg-opacity-25' : 'bg-info p-2 text-white bg-opacity-25'}`} ref={messagesEndRef}>
@@ -76,7 +76,7 @@ function Home() {
                   </div>
                   <form className='form-control p-0 items-center bg-transparent border-0 text-light' onSubmit={(e) => handleSubmit(e)}>
                     <div className="input-group max-w-full w-[800px] relative">
-                      {isTyping && <small className='absolute -top-6 left-0.5 animate-pulse'>Wednesday is typing...</small>}
+                      {isTyping && <small className='absolute -top-6 left-0.5 animate-pulse'>Siddharth is typing...</small>}
                       <input type="text" placeholder='Type a question for SidGPT, ask anything!' className='input input-bordered flex-grow mr-1' required />
                       <button className='btn btn-square mr-1' type='submit'>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 16 16">

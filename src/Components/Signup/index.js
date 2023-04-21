@@ -22,7 +22,7 @@ function Signup() {
             ) : (
                 <section className='container mx-auto p-5 fixed inset-0 mt-3'>
                     <div className="mockup-window bg-base-300 w-full h-full flex flex-col">
-                        <div className="p-5 pb-8 flex-grow overflow-auto">
+                        <div className="flex-grow overflow-auto">
                             {state.error && <>
                                 <div className='alert alert-danger alert-dismissible fade show'>
                                     {state.error}
@@ -57,9 +57,10 @@ function Signup() {
                                             <input type="password" className='form-control bg-transparent text-light' value={registerInput.password} onChange={(e) => setRegisterInput({ ...registerInput, password: e.target.value })} />
                                         </div>
                                     </div>
-                                    <div className="form-group mt-3 ml-5">
+                                    <div className="form-group mt-3">
                                         <button className='btn btn-warning' type="submit">Signup</button>
-                                        <small className='ml-3'>Already have an account</small>
+                                        <br/>
+                                        <small>Already have an account</small>
                                     <Link className='btn btn-link' to='/login'>Login</Link>
                                     </div>
                                 </form>

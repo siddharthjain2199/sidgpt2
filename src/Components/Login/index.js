@@ -32,7 +32,7 @@ const Login = () => {
                             <>
                                 <section className='container mx-auto p-5 fixed inset-0 mt-3'>
                                     <div className="mockup-window bg-base-300 w-full h-full flex flex-col">
-                                        <div className="p-5 pb-8 flex-grow overflow-auto">
+                                        <div className="flex-grow overflow-auto">
                                             {state.error && <>
                                                 <div className='alert alert-danger bg-danger text-light alert-dismissible fade show'>
                                                     {state.error}
@@ -59,15 +59,15 @@ const Login = () => {
                                                             <input type="password" className='form-control bg-transparent text-light' value={loginInput.password} onChange={handlePassword} />
                                                         </div>
                                                     </div>
-                                                    <div className="form-group mt-3 ml-5">
+                                                    <div className="form-group mt-3">
                                                         <button className='btn btn-warning' type="submit">Login</button>
                                                     </div>
                                                 </form>
                                                 <div>
-                                                    <small className='ml-4'>Did not remember </small>
-                                                    <Link className='btn btn-link' to='/resetpassword'>Forgot Password?</Link>
-
-                                                    <small className='ml-4'>Not have an account?</small>
+                                                    <small>Did not remember password</small>
+                                                    <Link className='btn btn-link' to='/resetpassword'>Forgot ?</Link>
+                                                    <br/>
+                                                    <small>Not have an account?</small>
                                                     <Link className='btn btn-link' to='/signup'>Signup</Link>
                                                 </div>
                                             </div>

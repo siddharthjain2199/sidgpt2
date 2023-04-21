@@ -42,7 +42,7 @@ function Home() {
     e.preventDefault();
     setMessages([
       {
-        content: "Hi, I'm Wednesday Addams, how can I help you ?",
+        content: "Hi, I'm Siddharth, how can I help you ?",
         role: "assistant"
       }
     ]);

@@ -13,8 +13,12 @@ pre {
 
 div::-webkit-scrollbar {
     width: 8px;
-  }
+}
 
 textarea {
     resize: none;
+}
+
+textarea::-webkit-scrollbar {
+    width: 8px;
 }

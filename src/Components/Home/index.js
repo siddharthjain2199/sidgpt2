@@ -27,9 +27,6 @@ function Home() {
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
   // Step 2: Adjust textarea height on inputText change (both typed and speech)
   useEffect(() => {
     if (textareaRef.current) {
@@ -37,95 +34,118 @@ function Home() {
       textareaRef.current.style.height = Math.min(150, textareaRef.current.scrollHeight) + "px";
     }
   }, [inputText]);
-  // Split large text into chunks for display
-  const splitIntoChunks = (text, chunkSize = 1000) => {
-    const chunks = [];
-    for (let i = 0; i < text.length; i += chunkSize) {
-      chunks.push(text.substring(i, i + chunkSize));
+
+// Helper to split array into chunks
+const chunkArray = (arr, size) => {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+};
+
+// Append or create a single assistant message by incrementally adding text chunks
+const addResponseChunkIncremental = (textChunk) => {
+  setMessages(prev => {
+    const lastIndex = prev.length - 1;
+    if (prev[lastIndex]?.role === "assistant") {
+      const updated = [...prev];
+      updated[lastIndex] = {
+        ...updated[lastIndex],
+        content: updated[lastIndex].content + (updated[lastIndex].content ? "\n\n" : "") + textChunk,
+      };
+      return updated;
+    } else {
+      return [...prev, { content: textChunk, role: "assistant" }];
     }
-    return chunks;
-  };
+  });
+};
 
-  // Fast AI response rendering
-  const addAssistantResponseFast = (aiResponseText) => {
-    const paragraphs = aiResponseText
-      .split("\n\n")
-      .flatMap((p) => splitIntoChunks(p, 800));
-    const combined = paragraphs.join("\n\n");
-    setMessages((prev) => [...prev, { content: combined, role: "assistant" }]);
-    setIsTyping(false);
-  };
+// Helper to call Gemini API for a batch of questions
+const sendBatchToGemini = async (batch, messages) => {
+  const formattedContents = messages.slice(-3).map(msg => ({
+    role: msg.role === "assistant" ? "model" : "user",
+    parts: [{ text: msg.content }],
+  }));
+  
+  formattedContents.push({
+    role: "user",
+    parts: [{ text: batch.join('\n') }],
+  });
 
-  // Submit handler
-  const handleSubmit = async (e) => {
-    e?.preventDefault();
-
-    const userMessageText = inputText.trim();
-    if (!userMessageText) return;
-
-    // Stop recognition temporarily
-    if (recognitionRef.current && listening) {
-      recognitionRef.current.stop();
-    }
-
-    const newUserMessage = { content: userMessageText, role: "user" };
-    setMessages((prev) => [...prev, newUserMessage]);
-    setInputText(""); // Clear textarea
-
-    setIsTyping(true);
-
-    try {
-      const formattedContents = [...messages, newUserMessage]
-        .slice(-3)
-        .map((msg) => ({
-          role: msg.role === "assistant" ? "model" : "user",
-          parts: [{ text: msg.content }],
-        }));
-
-      const completion = await geminiModel.generateContent({
-        contents: formattedContents,
-        generationConfig: {
-          temperature: 0.7,
-        },
-        systemInstruction: {
-          role: "system",
-          parts: [
-            {
-              text: `Format answers in **short Markdown** with:
+  const completion = await geminiModel.generateContent({
+    contents: formattedContents,
+    generationConfig: { temperature: 0.7 },
+    systemInstruction: {
+      role: "system",
+      parts: [
+        {
+          text: `Format answers in **short Markdown** with:
 - Clear headings for topics and dont want anywhere "#"
 - Bullet points for each key idea (✅, ⚡, 💡 icons)
 - Always include ALL important points (do not skip any)
 - Each point = valid 3 lines definition with short simple example
 - Do NOT use collapsible sections, show everything directly
-- at end please mention this and check that you have covered all point
 - Keep responses complete but concise
 - if code then try less commented line in code
 - if i will ask explain code then only explain
 - if ask difference then first give some descition and example and give table format difference
 - Try to give answer in interview perspective`,
-            },
-          ],
         },
-      });
+      ],
+    },
+  });
 
-      const aiResponseText = completion.response.text();
-      addAssistantResponseFast(aiResponseText);
-    } catch (error) {
-      console.error("Gemini API error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          content: "⚠️ Something went wrong. Please try again.",
-          role: "assistant",
-        },
-      ]);
-      setIsTyping(false);
-    } finally {
-      if (recognitionRef.current && listening) {
-        recognitionRef.current.start();
+  return completion.response.text();
+};
+
+const handleSubmit = async (e) => {
+  e?.preventDefault();
+
+  const userMessageText = inputText.trim();
+  if (!userMessageText) return;
+
+  if (recognitionRef.current && listening) {
+    recognitionRef.current.stop();
+  }
+
+  const questions = userMessageText.split('\n').filter(q => q.trim() !== '');
+  if (questions.length === 0) return;
+
+  setMessages(prev => [...prev, { content: userMessageText, role: "user" }]);
+  setInputText("");
+  setIsTyping(true);
+
+  const batchSize = 2;
+  const questionBatches = chunkArray(questions, batchSize);
+
+  try {
+    // Process all batches in parallel or sequentially but track all completions
+    await Promise.all(questionBatches.map(async (batch) => {
+      const aiResponseText = await sendBatchToGemini(batch, messages);
+      const responseChunks = aiResponseText.split('\n\n').filter(c => c.trim() !== '');
+      for (const chunk of responseChunks) {
+        addResponseChunkIncremental(chunk);
       }
+    }));
+
+    // All batches finished, stop typing
+    setIsTyping(false);
+
+  } catch (error) {
+    console.error("Gemini API error:", error);
+    setMessages(prev => [
+      ...prev,
+      { content: "⚠️ Something went wrong. Please try again.", role: "assistant" },
+    ]);
+    setIsTyping(false);
+  } finally {
+    if (recognitionRef.current && listening) {
+      recognitionRef.current.start();
     }
-  };
+  }
+};
+
 
   const handleRestart = () => {
     setMessages([

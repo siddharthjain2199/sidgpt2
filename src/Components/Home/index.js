@@ -11,6 +11,60 @@ import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 // Mic icons
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { Timestamp } from "firebase/firestore";
+
+const db = getFirestore();
+const auth = getAuth();
+
+const QUERY_LIMIT = process.env.REACT_APP_SET_QUERY_LIMIT; // example limit per user
+
+const checkAndIncrementQueryLimit = async () => {
+  if (!auth.currentUser) throw new Error("User not logged in");
+  const userId = auth.currentUser.uid;
+  const userDocRef = doc(db, "userQueryLimits", userId);
+
+  const userDoc = await getDoc(userDocRef);
+
+  const now = Timestamp.now();
+
+  if (!userDoc.exists()) {
+    // Create doc with count=1, limit, and lastReset as now
+    await setDoc(userDocRef, { count: 1, limit: Number(QUERY_LIMIT), lastReset: now });
+    return true;
+  } else {
+    const data = userDoc.data();
+
+    // Check lastReset and if 24 hrs passed, reset count
+    const lastReset = data.lastReset;
+    if (lastReset) {
+      const lastResetDate = lastReset.toDate();
+      const diffMs = now.toDate() - lastResetDate;
+      const hoursPassed = diffMs / (1000 * 60 * 60);
+      if (hoursPassed >= 24) {
+        // Reset count and lastReset timestamp
+        await updateDoc(userDocRef, {
+          count: 0,
+          lastReset: now,
+        });
+        data.count = 0; // reset local copy
+      }
+    } else {
+      // If no lastReset set, set it now
+      await updateDoc(userDocRef, { lastReset: now });
+    }
+
+    if (data.count >= data.limit) {
+      // Query limit exceeded
+      return false;
+    } else {
+      // Increment count atomically
+      await updateDoc(userDocRef, { count: increment(1) });
+      return true;
+    }
+  }
+};
 
 function Home() {
   const { currentUser, loading } = useContext(AuthContext);
@@ -35,52 +89,52 @@ function Home() {
     }
   }, [inputText]);
 
-// Helper to split array into chunks
-const chunkArray = (arr, size) => {
-  const chunks = [];
-  for (let i = 0; i < arr.length; i += size) {
-    chunks.push(arr.slice(i, i + size));
-  }
-  return chunks;
-};
-
-// Append or create a single assistant message by incrementally adding text chunks
-const addResponseChunkIncremental = (textChunk) => {
-  setMessages(prev => {
-    const lastIndex = prev.length - 1;
-    if (prev[lastIndex]?.role === "assistant") {
-      const updated = [...prev];
-      updated[lastIndex] = {
-        ...updated[lastIndex],
-        content: updated[lastIndex].content + (updated[lastIndex].content ? "\n\n" : "") + textChunk,
-      };
-      return updated;
-    } else {
-      return [...prev, { content: textChunk, role: "assistant" }];
+  // Helper to split array into chunks
+  const chunkArray = (arr, size) => {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+      chunks.push(arr.slice(i, i + size));
     }
-  });
-};
+    return chunks;
+  };
 
-// Helper to call Gemini API for a batch of questions
-const sendBatchToGemini = async (batch, messages) => {
-  const formattedContents = messages.slice(-3).map(msg => ({
-    role: msg.role === "assistant" ? "model" : "user",
-    parts: [{ text: msg.content }],
-  }));
-  
-  formattedContents.push({
-    role: "user",
-    parts: [{ text: batch.join('\n') }],
-  });
+  // Append or create a single assistant message by incrementally adding text chunks
+  const addResponseChunkIncremental = (textChunk) => {
+    setMessages(prev => {
+      const lastIndex = prev.length - 1;
+      if (prev[lastIndex]?.role === "assistant") {
+        const updated = [...prev];
+        updated[lastIndex] = {
+          ...updated[lastIndex],
+          content: updated[lastIndex].content + (updated[lastIndex].content ? "\n\n" : "") + textChunk,
+        };
+        return updated;
+      } else {
+        return [...prev, { content: textChunk, role: "assistant" }];
+      }
+    });
+  };
 
-  const completion = await geminiModel.generateContent({
-    contents: formattedContents,
-    generationConfig: { temperature: 0.7 },
-    systemInstruction: {
-      role: "system",
-      parts: [
-        {
-          text: `Format answers in **short Markdown** with:
+  // Helper to call Gemini API for a batch of questions
+  const sendBatchToGemini = async (batch, messages) => {
+    const formattedContents = messages.slice(-3).map(msg => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
+
+    formattedContents.push({
+      role: "user",
+      parts: [{ text: batch.join('\n') }],
+    });
+
+    const completion = await geminiModel.generateContent({
+      contents: formattedContents,
+      generationConfig: { temperature: 0.7 },
+      systemInstruction: {
+        role: "system",
+        parts: [
+          {
+            text: `Format answers in **short Markdown** with:
 - Clear headings for topics and dont want anywhere "#"
 - Bullet points for each key idea (✅, ⚡, 💡 icons)
 - Always include ALL important points (do not skip any)
@@ -91,60 +145,67 @@ const sendBatchToGemini = async (batch, messages) => {
 - if i will ask explain code then only explain
 - if ask difference then first give some descition and example and give table format difference
 - Try to give answer in interview perspective`,
-        },
-      ],
-    },
-  });
+          },
+        ],
+      },
+    });
 
-  return completion.response.text();
-};
+    return completion.response.text();
+  };
 
-const handleSubmit = async (e) => {
-  e?.preventDefault();
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+   
 
-  const userMessageText = inputText.trim();
-  if (!userMessageText) return;
+    const userMessageText = inputText.trim();
+    if (!userMessageText) return;
 
-  if (recognitionRef.current && listening) {
-    recognitionRef.current.stop();
-  }
-
-  const questions = userMessageText.split('\n').filter(q => q.trim() !== '');
-  if (questions.length === 0) return;
-
-  setMessages(prev => [...prev, { content: userMessageText, role: "user" }]);
-  setInputText("");
-  setIsTyping(true);
-
-  const batchSize = 2;
-  const questionBatches = chunkArray(questions, batchSize);
-
-  try {
-    // Process all batches in parallel or sequentially but track all completions
-    await Promise.all(questionBatches.map(async (batch) => {
-      const aiResponseText = await sendBatchToGemini(batch, messages);
-      const responseChunks = aiResponseText.split('\n\n').filter(c => c.trim() !== '');
-      for (const chunk of responseChunks) {
-        addResponseChunkIncremental(chunk);
-      }
-    }));
-
-    // All batches finished, stop typing
-    setIsTyping(false);
-
-  } catch (error) {
-    console.error("Gemini API error:", error);
-    setMessages(prev => [
-      ...prev,
-      { content: "⚠️ Something went wrong. Please try again.", role: "assistant" },
-    ]);
-    setIsTyping(false);
-  } finally {
     if (recognitionRef.current && listening) {
-      recognitionRef.current.start();
+      recognitionRef.current.stop();
     }
-  }
-};
+
+    const questions = userMessageText.split('\n').filter(q => q.trim() !== '');
+    if (questions.length === 0) return;
+
+    setMessages(prev => [...prev, { content: userMessageText, role: "user" }]);
+    setInputText("");
+    setIsTyping(true);
+ const allowed = await checkAndIncrementQueryLimit();
+    if (!allowed) {
+      setMessages(prev => [...prev, { content: "⚠️ You have reached your query limit. Please try after 24 hours.", role: "assistant" }]);
+      setIsTyping(false);
+      return;
+    }
+    // else proceed with query processing
+    const batchSize = 2;
+    const questionBatches = chunkArray(questions, batchSize);
+
+    try {
+      // Process all batches in parallel or sequentially but track all completions
+      await Promise.all(questionBatches.map(async (batch) => {
+        const aiResponseText = await sendBatchToGemini(batch, messages);
+        const responseChunks = aiResponseText.split('\n\n').filter(c => c.trim() !== '');
+        for (const chunk of responseChunks) {
+          addResponseChunkIncremental(chunk);
+        }
+      }));
+
+      // All batches finished, stop typing
+      setIsTyping(false);
+
+    } catch (error) {
+      console.error("Gemini API error:", error);
+      setMessages(prev => [
+        ...prev,
+        { content: "⚠️ Something went wrong. Please try again.", role: "assistant" },
+      ]);
+      setIsTyping(false);
+    } finally {
+      if (recognitionRef.current && listening) {
+        recognitionRef.current.start();
+      }
+    }
+  };
 
 
   const handleRestart = () => {
@@ -242,8 +303,8 @@ const handleSubmit = async (e) => {
         if (firstNewline !== -1) {
           const firstLine = block.substring(0, firstNewline).trim();
           if (/^[a-zA-Z]+$/.test(firstLine)) {
-             // eslint-disable-next-line
-            lang = firstLine; 
+            // eslint-disable-next-line
+            lang = firstLine;
             code = block.substring(firstNewline + 1);
           }
         }
@@ -252,8 +313,8 @@ const handleSubmit = async (e) => {
             <button
               onClick={() => handleCopy(code, idx)}
               className={`absolute top-2 right-2 text-xs px-2 py-1 rounded ${copiedIndex === idx
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-700 text-white hover:bg-gray-600"
+                ? "bg-green-600 text-white"
+                : "bg-gray-700 text-white hover:bg-gray-600"
                 }`}
             >
               {copiedIndex === idx ? "Copied" : "Copy"}

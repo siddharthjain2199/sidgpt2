@@ -8,25 +8,49 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up Firebase authentication listener
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        fs.collection('users').doc(user.uid).get().then((snapshot) => {
-          setCurrentUser(snapshot.data());
-        })
-        setLoading(false);
-      }
-      else {
+        try {
+          const docRef = fs.collection("users").doc(user.uid);
+          const docSnap = await docRef.get();
+
+          if (docSnap.exists) {
+            // 🔹 Merge Auth user object + Firestore user data
+            const firestoreData = docSnap.data();
+            setCurrentUser({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName || firestoreData.UserName,
+              ...firestoreData, // includes UserName, limit, lastReset
+            });
+          } else {
+            console.warn("⚠️ No Firestore document for this user");
+            setCurrentUser({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+            });
+          }
+        } catch (error) {
+          console.error("❌ Error fetching user Firestore doc:", error);
+          setCurrentUser({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+          });
+        }
+      } else {
         setCurrentUser(null);
-        setLoading(false)
       }
+      setLoading(false);
     });
-    // Unsubscribe from listener when component unmounts
-    return unsubscribe;
-  }, );
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <AuthContext.Provider value={{ currentUser, loading }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
